@@ -3,38 +3,76 @@
 #include "cpu.h"
 
 byte readByte(byte* ram, word address) {
+  if (address >= maxMemory) {
+    printf("Fatal error: Attempt to access invalid memory address\n");
+    exit(1);
+    }
   return ram[address];
   }
 
 byte readByteAsi(byte* ram, word address, byte asi) {
-  if (asi == 0x0a || asi == 0x0b) return ram[address];
+  if (asi == 0x0a || asi == 0x0b) {
+    if (address >= maxMemory) {
+      printf("Fatal error: Attempt to access invalid memory address\n");
+      exit(1);
+      }
+    return ram[address];
+    }
   return 0xff;
   }
 
 void writeByte(byte* ram, word address, byte value) {
+  if (address >= maxMemory) {
+    printf("Fatal error: Attempt to access invalid memory address\n");
+    exit(1);
+    }
   ram[address] = value;
   }
 
 void writeByteAsi(byte* ram, word address, byte value, byte asi) {
-  if (asi == 0x0a || asi == 0x0b) ram[address] = value;
+  if (asi == 0x0a || asi == 0x0b) {
+    if (address >= maxMemory) {
+      printf("Fatal error: Attempt to access invalid memory address\n");
+      exit(1);
+      }
+    ram[address] = value;
+    }
   }
 
 halfword readHalfWord(byte* ram, word address) {
+  if (address >= maxMemory) {
+    printf("Fatal error: Attempt to access invalid memory address\n");
+    exit(1);
+    }
   return (ram[address] << 8) | ram[address+1];
   }
 
 halfword readHalfWordAsi(byte* ram, word address, byte asi) {
-  if (asi == 0x0a || asi == 0x0b) return (ram[address] << 8) | ram[address+1];
+  if (asi == 0x0a || asi == 0x0b) {
+    if (address >= maxMemory) {
+      printf("Fatal error: Attempt to access invalid memory address\n");
+      exit(1);
+      }
+    return (ram[address] << 8) | ram[address+1];
+    }
   return 0xffff;
   }
 
 void writeHalfWord(byte* ram, word address, halfword value) {
+  if (address >= maxMemory) {
+    printf("Fatal error: Attempt to access invalid memory address\n");
+    exit(1);
+    }
   ram[address] = (value >> 8) & 0xff;
   ram[address+1] = value & 0xff;
   }
 
 void writeHalfWordAsi(byte* ram, word address, halfword value, byte asi) {
   if (asi == 0x0a || asi == 0x0b) {
+    if (address >= maxMemory) {
+      printf("Fatal error: Attempt to access invalid memory address\n");
+      exit(1);
+      }
     ram[address] = (value >> 8) & 0xff;
     ram[address+1] = value & 0xff;
     return;
@@ -42,16 +80,29 @@ void writeHalfWordAsi(byte* ram, word address, halfword value, byte asi) {
   }
 
 word readWord(byte* ram, word address) {
+  if (address >= maxMemory) {
+    printf("Fatal error: Attempt to access invalid memory address\n");
+    exit(1);
+    }
   return (ram[address] << 24) | (ram[address+1] << 16) | (ram[address+2] << 8) | ram[address+3];
   }
 
 word readWordAsi(byte* ram, word address, byte asi) {
-  if (asi == 0x0a || asi == 0x0b)
+  if (asi == 0x0a || asi == 0x0b) {
+    if (address >= maxMemory) {
+      printf("Fatal error: Attempt to access invalid memory address\n");
+      exit(1);
+      }
     return (ram[address] << 24) | (ram[address+1] << 16) | (ram[address+2] << 8) | ram[address+3];
+    }
   return 0xffffffff;
   }
 
 void writeWord(byte* ram, word address, halfword value) {
+  if (address >= maxMemory) {
+    printf("Fatal error: Attempt to access invalid memory address\n");
+    exit(1);
+    }
   ram[address] = (value >> 24) & 0xff;
   ram[address+1] = (value >> 16) & 0xff;
   ram[address+2] = (value >> 8) & 0xff;
@@ -60,6 +111,10 @@ void writeWord(byte* ram, word address, halfword value) {
 
 void writeWordAsi(byte* ram, word address, halfword value, byte asi) {
   if (asi == 0x0a || asi == 0x0b) {
+    if (address >= maxMemory) {
+      printf("Fatal error: Attempt to access invalid memory address\n");
+      exit(1);
+      }
     ram[address] = (value >> 24) & 0xff;
     ram[address+1] = (value >> 16) & 0xff;
     ram[address+2] = (value >> 8) & 0xff;

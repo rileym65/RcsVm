@@ -21,8 +21,9 @@ typedef int32_t   sword;
 #endif
 
 LINK CPU        cpu;
-LINK byte       memory[65536];
+LINK byte      *memory;
 LINK char       runDebugger;
+LINK word       maxMemory;
 
 extern byte readMem(byte* ram, word address);
 extern void writeMem(byte* ram, word address, byte value);

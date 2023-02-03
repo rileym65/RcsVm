@@ -4,7 +4,7 @@
 
 void clearMem() {
   int i;
-  for (i=0; i<65536; i++) memory[i] = 0;
+  for (i=0; i<maxMemory; i++) memory[i] = 0;
   }
 
 int main(int argc, char** argv) {
@@ -12,8 +12,13 @@ int main(int argc, char** argv) {
   printf("Run/S v1.0.0\n");
   printf("by Michael H. Riley\n");
 
+  maxMemory = 1000000;
+  memory = (byte*)malloc(maxMemory);
+  if (memory == NULL) {
+    printf("Fatal error: Could not allocate memory\n");
+    exit(1);
+    }
   clearMem();
-  cpu_reset(&cpu);
   runDebugger = 0;
   for (i=1; i<argc; i++) {
     if (strcmp(argv[i], "-d") == 0) runDebugger = 0xff;
@@ -22,6 +27,7 @@ int main(int argc, char** argv) {
       return 1;
       }
     }
+  cpu_reset(&cpu);
   cpu_prepare(&cpu);
   if (runDebugger) Debugger();
   else {
