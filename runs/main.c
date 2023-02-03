@@ -2,6 +2,27 @@
 #include "header.h"
 #include "cpu.h"
 
+byte readAsiByte(word address, byte asi) {
+  return 0xff;
+  }
+
+halfword readAsiHalfWord(word address, byte asi) {
+  return 0xffff;
+  }
+
+word readAsiWord(word address, byte asi) {
+  return 0xffffffff;
+  }
+
+void writeAsiByte(word address, byte value, byte asi) {
+  }
+
+void writeAsiHalfWord(word address, halfword value, byte asi) {
+  }
+
+void writeAsiWord(word address, word value, byte asi) {
+  }
+
 void clearMem() {
   int i;
   for (i=0; i<maxMemory; i++) memory[i] = 0;

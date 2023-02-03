@@ -18,7 +18,7 @@ byte readByteAsi(byte* ram, word address, byte asi) {
       }
     return ram[address];
     }
-  return 0xff;
+  return readAsiByte(address, asi);
   }
 
 void writeByte(byte* ram, word address, byte value) {
@@ -36,7 +36,9 @@ void writeByteAsi(byte* ram, word address, byte value, byte asi) {
       exit(1);
       }
     ram[address] = value;
+    return;
     }
+  writeAsiByte(address, value, asi);
   }
 
 halfword readHalfWord(byte* ram, word address) {
@@ -55,7 +57,7 @@ halfword readHalfWordAsi(byte* ram, word address, byte asi) {
       }
     return (ram[address] << 8) | ram[address+1];
     }
-  return 0xffff;
+  return readAsiHalfWord(address, asi);
   }
 
 void writeHalfWord(byte* ram, word address, halfword value) {
@@ -77,6 +79,7 @@ void writeHalfWordAsi(byte* ram, word address, halfword value, byte asi) {
     ram[address+1] = value & 0xff;
     return;
     }
+  writeAsiHalfWord(address, value, asi);
   }
 
 word readWord(byte* ram, word address) {
@@ -95,7 +98,7 @@ word readWordAsi(byte* ram, word address, byte asi) {
       }
     return (ram[address] << 24) | (ram[address+1] << 16) | (ram[address+2] << 8) | ram[address+3];
     }
-  return 0xffffffff;
+  return readAsiWord(address, asi);
   }
 
 void writeWord(byte* ram, word address, halfword value) {
@@ -119,7 +122,9 @@ void writeWordAsi(byte* ram, word address, halfword value, byte asi) {
     ram[address+1] = (value >> 16) & 0xff;
     ram[address+2] = (value >> 8) & 0xff;
     ram[address+3] = value & 0xff;
+    return;
     }
+  writeAsiWord(address, value, asi);
   }
 
 word getR(CPU* cpu, byte r) {

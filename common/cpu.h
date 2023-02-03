@@ -49,6 +49,12 @@ extern word getR(CPU* cpu, byte r);
 extern void cpu_cycle(CPU* cpu);
 extern void cpu_reset(CPU* cpu);
 extern void cpu_prepare(CPU *cpu);
+extern byte readAsiByte(word address, byte asi);
+extern halfword readAsiHalfWord(word address, byte asi);
+extern word readAsiWord(word address, byte asi);
+extern void writeAsiByte(word address, byte value, byte asi);
+extern void writeAsiHalfWord(word address, halfword value, byte asi);
+extern void writeAsiWord(word address, word value, byte asi);
 
 #endif
 
