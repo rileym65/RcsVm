@@ -1,0 +1,33 @@
+
+  ?              - dump memory
+  ?C             - Show clock ticks since last clock reset
+  ?C-            - Show clock ticks since last clock reset and reset
+  ?F             - Show floating point registers
+  ?P             - dump memory from PC
+  ?S             - dump stack
+  $              - disassemble memory
+  $P             - disassemble memory from PC
+  !addr bb bb .. - store bytes at address
+  !P bb bb  ..   - store bytes at PC
+  @              - run at PC
+  @addr          - set PC to addr then run
+  B?             - show break points
+  B+addr         - add break point
+  B-addr         - remove break point
+  BC             - clear all breakpoints
+  C+expr         - Add conditional breakpoint
+  C-num          - Remove specified conditional breakpoint
+  C?             - Show conditional breakpoints
+  C++            - Enable conditional breakpoints
+  C--            - Disable conditional breakpoints
+  CC             - Clear all conditional breakpoints
+  PC=addr        - set PC to addr
+  R              - Reset processor
+  T?             - show instruction traps
+  T+bb           - add instruction trap
+  T-bb           - remove instruction trap
+  TC             - clear all traps
+  TR+            - turn on command tracing
+  TR-            - turn off command tracing
+  /              - exit
+

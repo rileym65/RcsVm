@@ -1,0 +1,273 @@
+Registers:
+
+%R0  = %G0
+%R1  = %G1
+%R2  = %G2
+%R3  = %G3
+%R4  = %G4
+%R5  = %G5
+%R6  = %G6
+%R7  = %G7
+%R8  = %O0
+%R9  = %O1
+%R10 = %O2
+%R11 = %O3
+%R12 = %O4
+%R13 = %O5
+%R14 = %O6
+%R15 = %O7
+%R16 = %L0
+%R17 = %L1
+%R18 = %L2
+%R19 = %L3
+%R20 = %L4
+%R21 = %L5
+%R22 = %L6
+%R23 = %L7
+%R24 = %I0
+%R25 = %I1
+%R26 = %I2
+%R27 = %I3
+%R28 = %I4
+%R29 = %I5
+%R30 = %I6
+%R31 = %I7
+
+TSR
+bbbb bbbb  bbbb bbbb  bbbb  tttt tttt 0000
+
+PSR
+0000 0000  0000 0000  0000 0000  0000 0000
+\  / \  /  |||| \      /|| \  /  |||+- CWP
+ \/   \/   ||||  \    / ||  \/   ||+-- ET
+  |    |   ||||   \  /  ||   |   |+--- PS
+  |    |   ||||    \/   ||   |   +---- S
+  |    |   ||||     |   ||   +-------- PIL
+  |    |   ||||     |   |+------------ EF
+  |    |   ||||     |   +------------- EC
+  |    |   ||||     +----------------- Reserved
+  |    |   |||+----------------------- Flag C
+  |    |   ||+------------------------ Flag V
+  |    |   |+------------------------- Flag Z
+  |    |   +-------------------------- Flag N
+  |    +------------------------------ VER
+  +----------------------------------- IMPL
+
+format1 (op=1)
+OO IIIII IIIIII IIIII I IIIIIIII IIIII
+
+format2 (op=0):
+OO DDDDD OOOIII IIIII I IIIIIIII IIIII
+
+format3 (op=2 or op=3):
+OO DDDDD OOOOOO AAAAA 0 00000000 BBBBB
+OO DDDDD OOOOOO AAAAA 1 IIIIIIII IIIII
+                      10 0000 0000 0000
+
+D - destination register
+A - source register 1
+B - source register 2
+I - immediate
+
+? 11 001001   LDSB   [address],reg     Load signed byte
+? 11 001010   LDSH   [address],reg     Load signed halfword
+? 11 000001   LDUB   [address],reg     Load unsigned byte
+? 11 000010   LDUH   [address],reg     Load unsigned halfword
+? 11 000000   LD     [address],reg     Load word
+? 11 000011   LDD    [address],reg     Load double word
+
+? 11 100000   LD     [address],freg    Load floating point register
+? 11 100011   LDD    [address],freg    Load double floating point register
+? 11 100001   LD     [address],%fsr    Load floating point state register
+
+? 11 000101   STB    reg,[address]     Store byte
+? 11 000110   STH    reg,[address]     Store halfword
+? 11 000100   ST     reg,[address]     Store word
+? 11 000111   STD    reg,[address]     Store double word
+
+? 11 100100   ST     freg,[address]    Store floating point
+? 11 100111   STD    freg,[address]    Store double floating point
+? 11 100101   ST     %fsr,[address]    Store floating point state
+
+? 11 001101   LDSTUB [address],reg     Load/Store unsigned byte
+
+? 11 001111   SWAP   [address],reg     Swap register with memory
+
+? 00 100000   SETHI  const,reg         Set high 22 bits of register
+
+? 10 000001   AND    reg,arg,reg       Logical AND
+? 10 010001   ANDCC  reg,arg,reg       Logical AND with condition codes
+? 10 000101   ANDN   reg,arg,reg       Logical AND NOT
+? 10 010101   ANDNCC reg,arg,reg       Logical AND NOT with condition codes
+? 10 000010   OR     reg,arg,reg       Logical OR
+? 10 010010   ORCC   reg,arg,reg       Logical OR with condition codes
+? 10 000110   ORN    reg,arg,reg       Logical OR NOT
+? 10 010110   ORNCC  reg,arg,reg       Logical OR NOT with condition codes
+? 10 000011   XOR    reg,arg,reg       Logical XOR
+? 10 010011   XORCC  reg,arg,reg       Logical XOR with condition codes
+? 10 000111   XNOR   reg,arg,reg       Logical XNOR
+? 10 010111   XNORCC reg,arg,reg       Logical XNOR with condition codes
+
+? 10 100101   SLL    reg,arg,reg       Shift logical left
+? 10 100110   SRL    reg,arg,reg       Shift logical right
+? 10 100111   SRA    reg,arg,reg       Shift arithmetic right
+
+? 10 000000   ADD    reg,arg,reg       ADD
+? 10 010000   ADDCC  reg,arg,reg       ADD with condition codes
+? 10 001000   ADDX   reg,arg,reg       ADDX
+? 10 011000   ADDXCC reg,arg,reg       ADDX with condition codes
+
+? 10 000100   SUB    reg,arg,reg       SUB
+? 10 010100   SUBCC  reg,arg,reg       SUB with condition codes
+? 10 001100   SUBX   reg,arg,reg       SUBX
+? 10 011100   SUBXCC reg,arg,reg       SUBX with condition codes
+
+? 10 001010   UMUL    reg,arg,reg      Unsigned MUL
+? 10 011010   UMULCC  reg,arg,reg      Unsigned MUL with condition codes
+? 10 001011   SMUL    reg,arg,reg      Signed MUL
+? 10 011011   SMULCC  reg,arg,reg      Signed MUL with condition codes
+
+? 10 001110   UDIV    reg,arg,reg      Unsigned DIV
+? 10 011110   UDIVCC  reg,arg,reg      Unsigned DIV with condition codes
+? 10 001111   SDIV    reg,arg,reg      Signed DIV
+? 10 011111   SDIVCC  reg,arg,reg      Signed DIV with condition codes
+
+? 10 111100   SAVE    reg,arg,reg      Save window
+? 10 111101   RESTORE reg,arg,reg      Restore window
+
+? 00 010000   Bicc    disp/4           Branch on condition
+
+? 00 110000   FBicc   disp/4           Branch on floating point condition
+
+? 01 000000   CALL    disp30           Call
+
+? 10 111000   JMPL    address,reg      Jump and link
+
+? 10 111010   Ticc    address          Trap on condition
+
+? 10 101000   RD      %y,reg           Read Y register into r register
+
+? 10 110000   WR      reg,arg,%y       Write to Y register
+
+privileged instructions
+
+? 11 011001   LDSBA   [address]asi,reg Load signed byte from alternate source
+? 11 011010   LDSHA   [address]asi,reg Load signed halfword from alternate source
+? 11 010001   LDUBA   [address]asi,reg Load unsigned byte from alternate source
+? 11 010010   LDUHA   [address]asi,reg Load unsigned halfword from alternate source
+? 11 010000   LDA     [address]asi,reg Load word from alternate source
+? 11 010011   LDDA    [address]asi,reg Load double word from alternate source
+
+? 11 010101   STBA    reg,[address]asi Store byte into alternate
+? 11 010110   STHA    reg,[address]asi Store haflword into alternate
+? 11 010100   STA     reg,[address]asi Store word into alternate
+? 11 010111   STDA    reg,[address]asi Store double word into alternate
+
+? 11 011101   LDSTUBA [address]asi,reg Load/Store unsigned byte from alternate
+
+? 11 011111   SWAPA   [address]asi,reg Swap from alternate
+
+? 10 111001   RETT    address          Return from trap
+
+? 10 101001   RD      %psr,reg         Read PSR into register
+? 10 101010   RD      %wim,reg         Read WIM into reigster
+? 10 101011   RD      %tbr,reg         Read TBR into register
+
+? 10 110001   WR      reg,arg,%psr     Write to PSR register
+? 10 110010   WR      reg,arg,%wim     Write to WIM register
+? 10 110011   WR      reg,arg,%tbr     Write to TBR register
+
+Synthetic insructions
+
+CMP rs1,rs2_or_immed            SUBCC   rs1,rs2_or_immed,%g0
+JMP address                     JMPL    address,%g0
+CALL address                    JMPL    address,%o7
+TST rd                          ORCC    %g0,rd,%g0
+RET                             JMPL    %i7+4,%g0
+RETL                            JMPL    %o7+4,%g0
+RESTORE                         RESTORE %g0,%g0,%g0
+SAVE                            SAVE    %g0,%g0,%g0
+NOT rs1,rd                      XNOR    rs1,%g0,rd
+NOT rd                          XNOR    rd,%g0,rd
+NEG rs2,rd                      SUB     %g0,rs2,rd
+NEG rd                          SUB     %g0,rd,rd
+INC rd                          ADD     rd,1,rd
+INC immed,rd                    ADD     rd,immed,rd
+INCCC rd                        ADDCC   rd,1,rd
+INCCC immed,rd                  ADDCC   rd,immed,rd
+DEC rd                          SUB     rd,1,rd
+DEC immed,rd                    SUB     rd,immed,rd
+DECCC rd                        SUBCC   rd,1,rd
+DECCC immed,rd                  SUBCC   rd,immed,rd
+BTST rs2_or_immed,rs1           ANDCC   rs1,rs2_or_immed,%g0
+BSET rs2_or_immed,rs1           OR      rs1,rs2_or_immed,%g0
+BCLR rs2_or_immed,rs1           ANDN    rs1,rs2_or_immed,%g0
+BTOG rs2_or_immed,rs1           XOR     rs1,rs2_or_immed,%g0
+CLR rd                          OR      %g0,%g0,rd
+CLRB [address]                  STB     %g0,[address]
+CLRH [address]                  STH     %g0,[address]
+MOV rs2_or_immed,rd             OR      %g0,rs2_or_immed,rd
+MOV %Y,rd                       RD      %y,rd
+MOV %PSR,rd                     rd      %psr,rd
+MOV %WIM,rd                     rd      %wim,rd
+MOV %TBR,rd                     rd      %tbr,rd
+MOV rs2_or_immed,%Y             WR      %g0,r2_or_immed,%Y
+MOV rs2_or_immed,%PSR           WR      %g0,r2_or_immed,%PSR
+MOV rs2_or_immed,%WIM           WR      %g0,r2_or_immed,%WIM
+MOV rs2_or_immed,%TBR           WR      %g0,r2_or_immed,%TBR
+
+Floating point
+
+FITOS r2,rf    011000100
+FITOD r2,rf    011001000
+FITOQ r2,rf    011001100
+FSTOI rf,rd    011000001
+FDTOI rf,rd    011000010
+FQTOI rf,rd    011000011
+FMOVS rf,rf    000000001
+FNEGS rf,rf    000000101
+FABSS rf,rf    000001001
+FSQRTS rf,rf   000101001
+FSQRTD rf,rf   000101010
+FSQRTQ rf,rf   000101011
+FADDS rf,rf,rf 001000001
+FADDD rf,rf,rf 001000010
+FADDQ rf,rf,rf 001000011
+FSUBS rf,rf,rf 001000101
+FSUBD rf,rf,rf 001000110
+FSUBQ rf,rf,rf 001000111
+FMULS rf,rf,rf 001001001
+FMULD rf,rf,rf 001001010
+FMULQ rf,rf,rf 001001011
+FDIVS rf,rf,rf 001001101
+FDIVD rf,rf,rf 001001110
+FDIVQ rf,rf,rf 001001111
+FCMPS rf,rf    001010001
+FCMPD rf,rf    001010010
+FCMPQ rf,rf    001010011
+
+FSINS rf,rf    011100001
+FSIND rf,rf    011100010
+FSINQ rf,rf    011100011
+FCOSS rf,rf    011100101
+FCOSD rf,rf    011100110
+FCOSQ rf,rf    011100111
+FTANS rf,rf    011101001
+FTAND rf,rf    011101010
+FTANQ rf,rf    011101011
+FLOGS rf,rf    011101101
+FLOGD rf,rf    011101110
+FLOGQ rf,rf    011101111
+FEXPS rf,rf    011110001
+FEXPD rf,rf    011110010
+FEXPQ rf,rf    011110011
+FASINS rf,rf   011110101
+FASIND rf,rf   011110110
+FASINQ rf,rf   011110111
+FACOSS rf,rf   011111001
+FACOSD rf,rf   011111010
+FACOSQ rf,rf   011111011
+FATANS rf,rf   011111101
+FATAND rf,rf   011111110
+FATANQ rf,rf   011111111
+
