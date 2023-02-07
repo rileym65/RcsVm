@@ -40,6 +40,15 @@ LINK int    linesAssembled;
 LINK int    codeGenerated;
 LINK char   outLine[128];
 LINK int    outCount;
+LINK FILE*  files[128];
+LINK int    fileLines[128];
+LINK int    numFiles;
+LINK char   lineNo[16];
+LINK char **defineNames;
+LINK char **defineValues;
+LINK int    numDefines;
+LINK char   cond[256];
+LINK int    numCond;
 
 
 extern word assemble(char* line, int* err);

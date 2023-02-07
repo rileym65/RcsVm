@@ -531,6 +531,8 @@ OPS ops[] = {
   { "FATANS %f,%f",       "10BBBBB11010000000011111101AAAAA" },
   { "FATAND %f,%f",       "10BBBBB11010000000011111110AAAAA" },
   { "FATANQ %f,%f",       "10BBBBB11010000000011111111AAAAA" },
+
+  { "HALT",               "11-----1111110000000000000000000" },
   { "---",             "---" },
   };
 
@@ -606,6 +608,18 @@ word translate(char* pattern) {
   return ret;
   }
 
+char* getDecimal(char* line, word* dest) {
+  if (*line >= '0' && *line <= '9') {
+    *dest = 0;
+    while (*line >= '0' && *line <='9') {
+      *dest = (*dest * 10) + (*line - '0');
+      line++;
+      }
+    return line;
+    }
+  return NULL;
+  }
+
 int match(char* pattern, char* line) {
   int arg;
   arg = 0;
@@ -614,34 +628,34 @@ int match(char* pattern, char* line) {
   while (*pattern != 0) {
     if (*pattern == 'r') {
       if ((*line == 'r') || (*line == 'R')) {
-        line = getNumber(line+1, &(args[arg]));
+        line = getDecimal(line+1, &(args[arg]));
         if (line == NULL) return 0;
         if (args[arg] > 31) return 0;
         arg++;
         }
       else if ((*line == 'i') || (*line == 'I')) {
-        line = getNumber(line+1, &(args[arg]));
+        line = getDecimal(line+1, &(args[arg]));
         if (line == NULL) return 0;
         if (args[arg] > 7) return 0;
         args[arg] += 24;
         arg++;
         }
       else if ((*line == 'o') || (*line == 'O')) {
-        line = getNumber(line+1, &(args[arg]));
+        line = getDecimal(line+1, &(args[arg]));
         if (line == NULL) return 0;
         if (args[arg] > 7) return 0;
         args[arg] += 8;
         arg++;
         }
       else if ((*line == 'l') || (*line == 'L')) {
-        line = getNumber(line+1, &(args[arg]));
+        line = getDecimal(line+1, &(args[arg]));
         if (line == NULL) return 0;
         if (args[arg] > 7) return 0;
         args[arg] += 16;
         arg++;
         }
       else if ((*line == 'g') || (*line == 'G')) {
-        line = getNumber(line+1, &(args[arg]));
+        line = getDecimal(line+1, &(args[arg]));
         if (line == NULL) return 0;
         if (args[arg] > 7) return 0;
         arg++;
