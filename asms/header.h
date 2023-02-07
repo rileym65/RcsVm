@@ -31,6 +31,7 @@ LINK char   listName[1024];
 LINK char   outName[1024];
 LINK FILE*  srcFile;
 LINK FILE*  outFile;
+LINK FILE*  lstFile;
 LINK char   label[128];
 LINK char **labelNames;
 LINK word  *labelValues;

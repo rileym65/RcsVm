@@ -542,7 +542,8 @@ int assemblyPass(FILE* src) {
     pline = strchr(line, ';');
     if (pline != NULL) {
       *pline = 0;
-      while (strlen(line) > 0 && line[strlen(line)-1] <= ' ') line[strlen(line)-1] = 0;
+      while (strlen(line) > 0 && line[strlen(line)-1] <= ' ')
+        line[strlen(line)-1] = 0;
       }
     pline = line;
     if ((*pline >= 'a' && *pline <= 'z') ||
@@ -573,6 +574,7 @@ printf("-->%s\n",srcLine);
         outCount = 0;
         if (pass == 2) {
           if (showList != 0) printf("%7s                    %s\n",lineNo, srcLine);
+          if (listFile != 0) fprintf(lstFile,"%7s                    %s\n",lineNo, srcLine);
           }
         }
 
@@ -585,6 +587,7 @@ printf("-->%s\n",srcLine);
         outCount = 0;
         if (pass == 2) {
           if (showList != 0) printf("%7s                    %s\n",lineNo, srcLine);
+          if (listFile != 0) fprintf(lstFile,"%7s                    %s\n",lineNo, srcLine);
           }
         }
 
@@ -597,6 +600,7 @@ printf("-->%s\n",srcLine);
         outCount = 0;
         if (pass == 2) {
           if (showList != 0) printf("%7s                    %s\n",lineNo, srcLine);
+          if (listFile != 0) fprintf(lstFile,"%7s                    %s\n",lineNo, srcLine);
           }
         }
 
@@ -606,6 +610,7 @@ printf("-->%s\n",srcLine);
         getNumber(pline, &address);
         if (pass == 2) {
           if (showList != 0) printf("%7s                    %s\n",lineNo, srcLine);
+          if (listFile != 0) fprintf(lstFile,"%7s                    %s\n",lineNo, srcLine);
           if (outCount > 0) {
             fprintf(outFile, "%s\n", outLine);
             }
@@ -619,8 +624,10 @@ printf("-->%s\n",srcLine);
         pline += 3;
         while (*pline == ' ' || *pline == '\t') pline++;
         getNumber(pline, &startAddress);
-        if (pass == 2 && showList != 0)
-          printf("%7s                    %s\n",lineNo, srcLine);
+        if (pass == 2) {
+          if (showList != 0) printf("%7s                    %s\n",lineNo, srcLine);
+          if (listFile != 0) fprintf(lstFile,"%7s                    %s\n",lineNo, srcLine);
+          }
         }
 
       else if (strncasecmp(pline, "db", 2) == 0) {
@@ -650,11 +657,15 @@ printf("-->%s\n",srcLine);
                 if (count == 4) {
                   strcat(oline, " ");
                   strcat(oline, srcLine);
-                  if (pass == 2 && showList != 0)
-                    printf("%s\n",oline);
+                  if (pass == 2) {
+                    if (showList != 0) printf("%s\n",oline);
+                    if (listFile != 0) fprintf(lstFile,"%s\n",oline);
+                    }
                   }
-                else if (pass == 2 && showList != 0)
-                  printf("%s\n",oline);
+                else if (pass == 2) {
+                  if (showList != 0) printf("%s\n",oline);
+                  if (listFile != 0) fprintf(lstFile,"%s\n",oline);
+                  }
                 strcpy(oline,"                  ");
                 }
               output(value & 0xff);
@@ -668,12 +679,13 @@ printf("-->%s\n",srcLine);
               while (*pline == ' ' || *pline == '\t') pline++;
             }
           }
-        if (pass == 2 && showList != 0 && (count % 4) != 0) {
+        if (pass == 2 && (count % 4) != 0) {
           if (count < 4) {
             while (strlen(oline) < 27) strcat(oline," ");
             strcat(oline, srcLine);
             }
-          printf("%s\n",oline);
+          if (showList != 0) printf("%s\n",oline);
+          if (listFile != 0) fprintf(lstFile,"%s\n",oline);
           }
         }
 
@@ -692,11 +704,15 @@ printf("-->%s\n",srcLine);
               if (count == 2) {
                 strcat(oline, " ");
                 strcat(oline, srcLine);
-                if (pass == 2 && showList != 0)
-                  printf("%s\n",oline);
+                if (pass == 2) {
+                  if (showList != 0) printf("%s\n",oline);
+                  if (listFile != 0) fprintf(lstFile,"%s\n",oline);
+                  }
                 }
-              else if (pass == 2 && showList != 0)
-                printf("%s\n",oline);
+              else if (pass == 2) {
+                if (showList != 0) printf("%s\n",oline);
+                if (listFile != 0) fprintf(lstFile,"%s\n",oline);
+                }
               strcpy(oline,"                  ");
               }
             output((value >> 8) & 0xff);
@@ -710,12 +726,13 @@ printf("-->%s\n",srcLine);
           if (pline != NULL)
             while (*pline == ' ' || *pline == '\t') pline++;
           }
-        if (pass == 2 && showList != 0 && (count % 2) != 0) {
+        if (pass == 2 && (count % 2) != 0) {
           if (count < 2) {
             while (strlen(oline) < 27) strcat(oline," ");
             strcat(oline, srcLine);
             }
-          printf("%s\n",oline);
+          if (showList != 0) printf("%s\n",oline);
+          if (listFile != 0) fprintf(lstFile,"%s\n",oline);
           }
         }
 
@@ -733,11 +750,15 @@ printf("-->%s\n",srcLine);
             if (count == 1) {
               strcat(oline, " ");
               strcat(oline, srcLine);
-              if (pass == 2 && showList != 0)
-                printf("%s\n",oline);
+              if (pass == 2) {
+                if (showList != 0) printf("%s\n",oline);
+                if (listFile != 0) fprintf(lstFile,"%s\n",oline);
+                }
               }
-            else if (pass == 2 && showList != 0)
-              printf("%s\n",oline);
+            else if (pass == 2) {
+              if (showList != 0) printf("%s\n",oline);
+              if (listFile != 0) fprintf(lstFile,"%s\n",oline);
+              }
             strcpy(oline,"                  ");
             output((value >> 24) & 0xff);
             output((value >> 16) & 0xff);
@@ -757,8 +778,12 @@ printf("-->%s\n",srcLine);
       else {
         opcode = assemble(pline, &err);
         if (err == 0) {
-          if (pass == 2 && showList != 0)
-            printf("%7s %08x: %08x %s\n",lineNo, address, opcode, srcLine);
+          if (pass == 2) {
+            if (showList != 0)
+              printf("%7s %08x: %08x %s\n",lineNo, address, opcode, srcLine);
+            if (listFile != 0)
+              fprintf(lstFile,"%7s %08x: %08x %s\n",lineNo, address, opcode, srcLine);
+            }
           output((opcode >> 24) & 0xff);
           output((opcode >> 16) & 0xff);
           output((opcode >> 8) & 0xff);
@@ -784,6 +809,29 @@ printf("-->%s\n",srcLine);
   return 0;
   }
 
+void optionFile(char* filename) {
+  FILE *file;
+  char  buffer[1024];
+  int   p;
+  file = fopen(filename,"r");
+  if (file == NULL) return;
+  while (!feof(file)) {
+    fgets(buffer, 1023, file);
+    p = 0;
+    while (buffer[p] != 0) {
+      if (buffer[p] == '-' && buffer[p+1] == 'l') {
+        showList = 0xff;
+        p += 2;
+        }
+      else if (buffer[p] == '-' && buffer[p+1] == 'L') {
+        listFile = 0xff;
+        p += 2;
+        }
+      else p++;
+      }
+    }
+  }
+
 void assembleFile(char* filename) {
   int p;
   char buildName[1024];
@@ -803,6 +851,9 @@ void assembleFile(char* filename) {
     printf("Could not open source file: %s\n",srcName);
     return;
     }
+  strcpy(buildName, baseName);
+  strcat(buildName, ".rc");
+  optionFile(buildName);
   strcpy(buildName, baseName);
   strcat(buildName, ".build");
   buildFile = fopen(buildName, "r");
@@ -837,6 +888,9 @@ void assembleFile(char* filename) {
     fclose(srcFile);
     return;
     }
+  if (listFile) {
+    lstFile = fopen(listName,"w");
+    }
   pass = 2;
   outCount = 0;
   sprintf(outLine,"%08x:", address);
@@ -848,6 +902,7 @@ void assembleFile(char* filename) {
     fprintf(outFile,"@%x\n", startAddress);
   fclose(srcFile);
   fclose(outFile);
+  if (listFile) fclose(lstFile);
   printf("\n");
   printf("Errors          : %d\n", errors);
   printf("Lines Assembled : %d\n", linesAssembled);
@@ -858,8 +913,11 @@ int main(int argc, char** argv) {
   int i;
   struct tm buildTime;
   time_t    tt;
+  char     *homedir;
+  char      tmp[1024];
   printf("Asm/S v1.0\n");
   printf("by Michael H. Riley\n\n");
+  homedir = getenv("HOME");
   tt = time(NULL);
   localtime_r(&tt, &buildTime);
   buildYear = buildTime.tm_year + 1900;
@@ -870,6 +928,12 @@ int main(int argc, char** argv) {
   buildSecond = buildTime.tm_sec;
   showList = 0;
   listFile = 0;
+  if (homedir != NULL) {
+    strcpy(tmp, homedir);
+    strcat(tmp,"/.asms.rc");
+    optionFile(tmp);
+    }
+  optionFile("asms.rc");
   i = 1;
   while (i < argc) {
     if (strcmp(argv[i], "-l") == 0) showList = 0xff;
