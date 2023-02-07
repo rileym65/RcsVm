@@ -1498,7 +1498,7 @@ word Disassem(word addr, char* dest) {
          strcat(dest,"UNDEF");
          break;
     case 0xff:
-         strcat(dest,"UNDEF");
+         strcat(dest,"HALT");
          break;
     default: 
          sprintf(tmp,"             DB     $%02x",memory[addr]); addr++; break;

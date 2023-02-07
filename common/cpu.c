@@ -164,7 +164,7 @@ void trap(CPU *cpu, byte number) {
     cpu->tbr &= 0xfffff000;
     cpu->tbr |= (number << 4);
     cpu->pc = cpu->tbr;
-    cpu->npc = cpu->pc + 4;
+    cpu->npc = cpu->pc;
     }
   }
 
@@ -1643,7 +1643,7 @@ void _PB9(CPU *cpu) {                  /* RETT address */
   cpu->psr &= (~PSR_S);
   if ((cpu->psr & PSR_PS) != 0) cpu->psr |= PSR_S;
   v2 = ((cpu->psr & 0x1f) + 1) & 0x1f;
-  cpu->psr = (cpu->psr & 0xfffffffffffe000) | v2;
+  cpu->psr = (cpu->psr & 0xfffffffffffffe0) | v2;
   }
 
 void _PBA(CPU *cpu) {                  /* Ticc address */
@@ -2229,7 +2229,7 @@ void _PFE(CPU *cpu) {
   }
 
 void _PFF(CPU *cpu) {
-  trap(cpu, TRAP_UNDEF);
+  cpu->halt = -1;
   }
 
 void cpu_prepare(CPU *cpu) {
