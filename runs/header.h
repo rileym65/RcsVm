@@ -24,6 +24,7 @@ LINK CPU        cpu;
 LINK byte      *memory;
 LINK char       runDebugger;
 LINK word       maxMemory;
+LINK word       startAddress;
 
 extern byte readMem(byte* ram, word address);
 extern void writeMem(byte* ram, word address, byte value);

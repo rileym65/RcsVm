@@ -21,6 +21,10 @@ void writeAsiHalfWord(word address, halfword value, byte asi) {
   }
 
 void writeAsiWord(word address, word value, byte asi) {
+  if (asi == 1) {
+    printf("%c", value);
+    fflush(stdout);
+    }
   }
 
 void clearMem() {
@@ -33,6 +37,7 @@ int main(int argc, char** argv) {
   printf("Run/S v1.0.0\n");
   printf("by Michael H. Riley\n");
 
+  startAddress = 0;
   maxMemory = 1000000;
   memory = (byte*)malloc(maxMemory);
   if (memory == NULL) {
@@ -50,6 +55,7 @@ int main(int argc, char** argv) {
     }
   cpu_reset(&cpu);
   cpu_prepare(&cpu);
+  cpu.pc = startAddress;
   if (runDebugger) Debugger();
   else {
     while (cpu.halt == 0) {

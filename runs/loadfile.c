@@ -41,7 +41,7 @@ int loadFile(char* filename) {
         }
       if (*pchar <= ' ' && valid) {
         if (mode == 'A') address = v;
-        else if (mode == 'E') cpu.pc = v;
+        else if (mode == 'E') startAddress = v;
         else memory[address++] = (v & 0xff);
         valid = 0;
         mode = 'D';
