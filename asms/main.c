@@ -1,5 +1,6 @@
 #define MAIN
 
+#include <time.h>
 #include "header.h"
 
 #define OP_LO      0xe1
@@ -145,6 +146,34 @@ char* getNumber(char* line, word* dest) {
         return NULL;
         }
       line++;
+      }
+    else if (strncasecmp(line, "[build]",7) == 0) {
+      numbers[nsp++] = buildNumber;
+      line += 7;
+      }
+    else if (strncasecmp(line, "[hour]",6) == 0) {
+      numbers[nsp++] = buildHour;
+      line += 6;
+      }
+    else if (strncasecmp(line, "[minute]",8) == 0) {
+      numbers[nsp++] = buildMinute;
+      line += 8;
+      }
+    else if (strncasecmp(line, "[second]",8) == 0) {
+      numbers[nsp++] = buildSecond;
+      line += 8;
+      }
+    else if (strncasecmp(line, "[year]",6) == 0) {
+      numbers[nsp++] = buildYear;
+      line += 6;
+      }
+    else if (strncasecmp(line, "[month]",7) == 0) {
+      numbers[nsp++] = buildMonth;
+      line += 7;
+      }
+    else if (strncasecmp(line, "[day]",5) == 0) {
+      numbers[nsp++] = buildDay;
+      line += 5;
       }
     else if ((*line >= 'a' && *line <= 'z') ||
         (*line >= 'A' && *line <= 'Z')) {
@@ -639,8 +668,13 @@ printf("-->%s\n",srcLine);
               while (*pline == ' ' || *pline == '\t') pline++;
             }
           }
-        if (pass == 2 && showList != 0 && (count % 4) != 0)
+        if (pass == 2 && showList != 0 && (count % 4) != 0) {
+          if (count < 4) {
+            while (strlen(oline) < 27) strcat(oline," ");
+            strcat(oline, srcLine);
+            }
           printf("%s\n",oline);
+          }
         }
 
       else if (strncasecmp(pline, "dh", 2) == 0) {
@@ -676,8 +710,13 @@ printf("-->%s\n",srcLine);
           if (pline != NULL)
             while (*pline == ' ' || *pline == '\t') pline++;
           }
-        if (pass == 2 && showList != 0 && (count % 2) != 0)
+        if (pass == 2 && showList != 0 && (count % 2) != 0) {
+          if (count < 2) {
+            while (strlen(oline) < 27) strcat(oline," ");
+            strcat(oline, srcLine);
+            }
           printf("%s\n",oline);
+          }
         }
 
       else if (strncasecmp(pline, "dw", 2) == 0) {
@@ -735,7 +774,6 @@ printf("-->%s\n",srcLine);
     }
   if (numDefines > 0) {
     for (i=0; i<numDefines; i++) {
-printf("Define %s = %s\n",defineNames[i], defineValues[i]);
       free(defineNames[i]);
       free(defineValues[i]);
       }
@@ -748,6 +786,8 @@ printf("Define %s = %s\n",defineNames[i], defineValues[i]);
 
 void assembleFile(char* filename) {
   int p;
+  char buildName[1024];
+  FILE *buildFile;
   printf("Assembling %s...\n",filename);
   strcpy(srcName, filename);
   strcpy(baseName, filename);
@@ -763,6 +803,20 @@ void assembleFile(char* filename) {
     printf("Could not open source file: %s\n",srcName);
     return;
     }
+  strcpy(buildName, baseName);
+  strcat(buildName, ".build");
+  buildFile = fopen(buildName, "r");
+  if (buildFile == NULL) {
+    buildNumber = 1;
+    }
+  else {
+    fscanf(buildFile,"%d",&buildNumber);
+    fclose(buildFile);
+    buildNumber++;
+    }
+  buildFile = fopen(buildName, "w");
+  fprintf(buildFile, "%d\n",buildNumber);
+  fclose(buildFile);
   numLabels = 0;
   errors = 0;
   pass = 1;
@@ -802,8 +856,18 @@ void assembleFile(char* filename) {
 
 int main(int argc, char** argv) {
   int i;
+  struct tm buildTime;
+  time_t    tt;
   printf("Asm/S v1.0\n");
   printf("by Michael H. Riley\n\n");
+  tt = time(NULL);
+  localtime_r(&tt, &buildTime);
+  buildYear = buildTime.tm_year + 1900;
+  buildMonth = buildTime.tm_mon + 1;
+  buildDay = buildTime.tm_mday;
+  buildHour = buildTime.tm_hour;
+  buildMinute = buildTime.tm_min;
+  buildSecond = buildTime.tm_sec;
   showList = 0;
   listFile = 0;
   i = 1;

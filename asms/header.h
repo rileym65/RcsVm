@@ -49,6 +49,13 @@ LINK char **defineValues;
 LINK int    numDefines;
 LINK char   cond[256];
 LINK int    numCond;
+LINK int    buildNumber;
+LINK int    buildMonth;
+LINK int    buildDay;
+LINK int    buildYear;
+LINK int    buildHour;
+LINK int    buildMinute;
+LINK int    buildSecond;
 
 
 extern word assemble(char* line, int* err);
