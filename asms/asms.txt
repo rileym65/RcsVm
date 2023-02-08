@@ -1,0 +1,56 @@
+Command line switches
+---------------------
+-l                   - Show assembly listing
+-L                   - Create listing file
+-nl                  - No assembly listing
+-NL                  - No listing file
+-s                   - Show symbols
+-ns                  - Do not show symbols
+
+Assembler directives
+--------------------
+.align word          - Align address to 32-bit word
+.align para          - Align address to 16-byte boundary
+.align page          - Align address to 256-byte boundary
+.list                - Show assembly listing
+.nolist              - Do not show assembly listing
+.listfile            - Create list file
+.nolistfile          - do not create list file
+.symbols             - Show symbols
+.nosymbols           - Do not show symbols
+
+Pseudo ops
+----------
+          org addr   - Set assembly address
+          db  list   - Define bytes
+          dh  list   - Define half bytes (16-bits)
+          dw  list   - Define words (32-bits)
+          df  list   - Define floating point (32-bits)
+label:    equ expr   - Equate label to value
+          end addr   - Set start address
+
+Preprocessor
+------------
+#define name [value]
+#ifdef name
+#ifndef name
+#else
+#endif
+#if expr
+#include filename
+#print text
+#error text
+
+expression variables
+--------------------
+[build]              - Build number
+[year]               - Build year
+[month]              - Build month
+[day]                - Build day
+[hour]               - Build hour
+[minute]             - Build minute
+[second]             - Build second
+[pass]               - Pass number
+[line]               - Current line number
+
+

@@ -33,7 +33,7 @@ Registers:
 %R30 = %I6
 %R31 = %I7
 
-TSR
+TBR
 bbbb bbbb  bbbb bbbb  bbbb  tttt tttt 0000
 
 PSR
