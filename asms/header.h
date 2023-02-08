@@ -18,6 +18,11 @@ typedef u_int32_t word;
 typedef u_int64_t dword;
 typedef int32_t   sword;
 
+typedef union {
+  word i;
+  float f;
+  } IF;
+
 LINK word   address;
 LINK int    errors;
 LINK char   listFile;
@@ -35,6 +40,7 @@ LINK FILE*  lstFile;
 LINK char   label[128];
 LINK char **labelNames;
 LINK word  *labelValues;
+LINK word  *labelDefLines;
 LINK int    numLabels;
 LINK word   startAddress;
 LINK int    linesAssembled;
@@ -57,6 +63,8 @@ LINK int    buildYear;
 LINK int    buildHour;
 LINK int    buildMinute;
 LINK int    buildSecond;
+LINK int    showSymbols;
+LINK char   err[256];
 
 
 extern word assemble(char* line, int* err);

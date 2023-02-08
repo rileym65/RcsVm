@@ -25,6 +25,12 @@
 #define OP_OP      0x10
 #define OP_END     0x01
 
+void Error(char* msg) {
+  printf("Error: %s\n",msg);
+  printf("       [%5d] %s\n",fileLines[numFiles-1], srcLine);
+  errors++;
+  }
+
 int findDefine(char* name) {
   int i;
   for (i=0; i<numDefines; i++)
@@ -34,8 +40,8 @@ int findDefine(char* name) {
 
 void addDefine(char* name, char* value) {
   if (findDefine(name) >= 0) {
-    printf("Error: Duplicate define: %s\n",name);
-    errors++;
+    sprintf(err,"Duplicate define: %s",name);
+    Error(err);
     return;
     }
   numDefines++;
@@ -72,22 +78,24 @@ int findLabel(char* name) {
 void addLabel(char* name, word value) {
   if (pass == 2) return;
   if (findLabel(name) >= 0) {
-    printf("Error: Duplicate label: %s\n",name);
-    errors++;
+    sprintf(err,"Duplicate label: %s",name);
+    Error(err);
     return;
     }
   numLabels++;
   if (numLabels == 1) {
     labelNames = (char**)malloc(sizeof(char*));
     labelValues = (word*)malloc(sizeof(word));
+    labelDefLines = (word*)malloc(sizeof(word));
     }
   else {
     labelNames = (char**)realloc(labelNames, sizeof(char*) * numLabels);
-    labelValues = (word*)realloc(labelValues, sizeof(word) * numLabels);
+    labelDefLines = (word*)realloc(labelDefLines, sizeof(word) * numLabels);
     }
   labelNames[numLabels-1] = (char*)malloc(strlen(name) + 1);
   strcpy(labelNames[numLabels-1], name);
   labelValues[numLabels-1] = value;
+  labelDefLines[numLabels-1] = fileLines[numFiles-1];
   }
 
 word getLabel(char* name) {
@@ -95,10 +103,17 @@ word getLabel(char* name) {
   i = findLabel(name);
   if (i >= 0) return labelValues[i];
   if (pass == 2) {
-    printf("Error: Label not found: %s\n",name);
-    errors++;
+    sprintf(err,"Label not found: %s",name);
+    Error(err);
     }
   return 0;
+  }
+
+void setLabel(char* name, word value) {
+  int i;
+  i = findLabel(name);
+  if (i < 0) return;
+  labelValues[i] = value;
   }
 
 char* getNumber(char* line, word* dest) {
@@ -141,8 +156,7 @@ char* getNumber(char* line, word* dest) {
       line++;
       numbers[nsp++] = *line++;
       if (*line != '\'') {
-        printf("Error: Character constant more than 1 character\n");
-        errors++;
+        Error("Character constant more than 1 character");
         return NULL;
         }
       line++;
@@ -175,6 +189,14 @@ char* getNumber(char* line, word* dest) {
       numbers[nsp++] = buildDay;
       line += 5;
       }
+    else if (strncasecmp(line, "[pass]",6) == 0) {
+      numbers[nsp++] = pass;
+      line += 6;
+      }
+    else if (strncasecmp(line, "[line]",6) == 0) {
+      numbers[nsp++] = fileLines[numFiles-1];
+      line += 6;
+      }
     else if ((*line >= 'a' && *line <= 'z') ||
         (*line >= 'A' && *line <= 'Z')) {
       p = 0;
@@ -184,6 +206,12 @@ char* getNumber(char* line, word* dest) {
              *line == '_') name[p++] = *line++;
       name[p] = 0;
       numbers[nsp++] =  getLabel(name);
+      }
+    else if (*line == '$' && !((*(line+1) >= '0' && *(line+1) <= '9') ||
+                               (*(line+1) >= 'a' && *(line+1) <= 'f') ||
+                               (*(line+1) >= 'A' && *(line+1) <= 'F'))) {
+      numbers[nsp++] = address;
+      line++;
       }
     else if (*line == '$') {
       v = 0;
@@ -236,7 +264,7 @@ char* getNumber(char* line, word* dest) {
       else if (*line == 0) op = OP_END;
       else op = 0;
       if (op == 0) {
-        printf("Error: Expression error\n");
+        Error("Expression error");
         return NULL;
         }
       while (osp > 0 && (op & 0xf0) <= (ops[osp-1] & 0xf0)) {
@@ -323,7 +351,7 @@ char* getNumber(char* line, word* dest) {
       }
     }
   if (nsp != 1) {
-    printf("Error: Expression did not reduce to single term\n");
+    Error("Expression did not reduce to single term");
     return NULL;
     }
   *dest = numbers[0];
@@ -399,12 +427,14 @@ int nextLine(char* buffer, int maxLen) {
       line = trim(line);
       files[numFiles] = fopen(line,"r");
       if (files[numFiles] == NULL) {
-        printf("Could not open include file: <<%s>>\n",line);
+        sprintf(err,"Could not open include file: <<%s>>",line);
+        Error(err);
         return -1;
         }
       fileLines[numFiles] = 0;
       numFiles++;
       }
+
     else if (strncmp(line,"#define ",8) == 0) {
       flag = 0;
       line += 8;
@@ -420,6 +450,7 @@ int nextLine(char* buffer, int maxLen) {
         addDefine(line,"1");
         }
       }
+
     else if (strncmp(line,"#ifdef ",7) == 0) {
       flag = 0;
       if (numCond > 0 &&
@@ -441,6 +472,7 @@ int nextLine(char* buffer, int maxLen) {
         else cond[numCond++] = 'Y';
         }
       }
+
     else if (strncmp(line,"#ifndef ",8) == 0) {
       flag = 0;
       if (numCond > 0 &&
@@ -462,6 +494,7 @@ int nextLine(char* buffer, int maxLen) {
         else cond[numCond++] = 'N';
         }
       }
+
     else if (strncmp(line,"#if ",4) == 0) {
       flag = 0;
       if (numCond > 0 &&
@@ -478,24 +511,51 @@ int nextLine(char* buffer, int maxLen) {
         else cond[numCond++] = 'Y';
         }
       }
+
     else if (strncmp(line,"#else",5) == 0) {
       flag = 0;
       if (numCond == 0) {
-        printf("Error: #else outside #ifdef\n");
-        errors++;
+        Error("#else outside #ifdef");
         }
       else {
         if (cond[numCond-1] == 'N') cond[numCond-1] = 'Y';
         else if (cond[numCond-1] == 'Y') cond[numCond-1] = 'N';
         }
       }
+
     else if (strncmp(line,"#endif",6) == 0) {
       flag = 0;
       if (numCond == 0) {
-        printf("Error: Unmatched #endif\n");
-        errors++;
+        Error("Unmatched #endif");
         }
       else numCond--;
+      }
+
+    else if (strncmp(line,"#print ",7) == 0) {
+      flag = 0;
+      if (numCond > 0 &&
+          (cond[numCond-1] == 'N' || cond[numCond-1] == 'I')) {
+        cond[numCond++] = 'I';
+        }
+      else {
+        line += 7;
+        line = trim(line);
+        printf("%s\n",line);
+        }
+      }
+
+    else if (strncmp(line,"#error ",7) == 0) {
+      flag = 0;
+      if (numCond > 0 &&
+          (cond[numCond-1] == 'N' || cond[numCond-1] == 'I')) {
+        cond[numCond++] = 'I';
+        }
+      else {
+        line += 7;
+        line = trim(line);
+        printf("%s\n",line);
+        errors++;
+        }
       }
 
     else if (numCond > 0 && cond[numCond-1] == 'I') flag = 0;
@@ -521,6 +581,7 @@ int assemblyPass(FILE* src) {
   int   count;
   int   qt;
   int   i;
+  IF    id;
   numFiles = 0;
   files[numFiles++] = src;
   fileLines[numFiles-1] = 0;
@@ -558,9 +619,7 @@ int assemblyPass(FILE* src) {
       if (pass == 1) addLabel(label, address);
       }
     if (*pline != 0 && *pline != 32 && *pline != '\t' && *pline != '.') {
-      printf("Error: Invalid starting character on line\n");
-printf("-->%s\n",srcLine);
-      errors++;
+      Error("Invalid starting character on line");
       }
     else if (*pline != 0) {
       while (*pline == ' ' || *pline == '\t') pline++;
@@ -604,6 +663,54 @@ printf("-->%s\n",srcLine);
           }
         }
 
+      else if (strncasecmp(pline, ".listfile", 9) == 0) {
+        listFile = 0xff;
+        if (pass == 2) {
+          if (showList != 0) printf("%7s                    %s\n",lineNo, srcLine);
+          if (listFile != 0) fprintf(lstFile,"%7s                    %s\n",lineNo, srcLine);
+          }
+        }
+
+      else if (strncasecmp(pline, ".nolistfile", 11) == 0) {
+        listFile = 0;
+        if (pass == 2) {
+          if (showList != 0) printf("%7s                    %s\n",lineNo, srcLine);
+          if (listFile != 0) fprintf(lstFile,"%7s                    %s\n",lineNo, srcLine);
+          }
+        }
+
+      else if (strncasecmp(pline, ".list", 5) == 0) {
+        showList = 0xff;
+        if (pass == 2) {
+          if (showList != 0) printf("%7s                    %s\n",lineNo, srcLine);
+          if (listFile != 0) fprintf(lstFile,"%7s                    %s\n",lineNo, srcLine);
+          }
+        }
+
+      else if (strncasecmp(pline, ".nolist", 7) == 0) {
+        showList = 0;
+        if (pass == 2) {
+          if (showList != 0) printf("%7s                    %s\n",lineNo, srcLine);
+          if (listFile != 0) fprintf(lstFile,"%7s                    %s\n",lineNo, srcLine);
+          }
+        }
+
+      else if (strncasecmp(pline, ".symbols", 8) == 0) {
+        showSymbols = 0xff;
+        if (pass == 2) {
+          if (showList != 0) printf("%7s                    %s\n",lineNo, srcLine);
+          if (listFile != 0) fprintf(lstFile,"%7s                    %s\n",lineNo, srcLine);
+          }
+        }
+
+      else if (strncasecmp(pline, ".nosymbols", 10) == 0) {
+        showSymbols = 0;
+        if (pass == 2) {
+          if (showList != 0) printf("%7s                    %s\n",lineNo, srcLine);
+          if (listFile != 0) fprintf(lstFile,"%7s                    %s\n",lineNo, srcLine);
+          }
+        }
+
       else if (strncasecmp(pline, "org", 3) == 0) {
         pline += 3;
         while (*pline == ' ' || *pline == '\t') pline++;
@@ -617,7 +724,17 @@ printf("-->%s\n",srcLine);
           sprintf(outLine,"%08x:", address);
           outCount = 0;
           }
-        
+        }
+
+      else if (strncasecmp(pline, "equ", 3) == 0) {
+        pline += 3;
+        while (*pline == ' ' || *pline == '\t') pline++;
+        getNumber(pline, &value);
+        setLabel(label, value);
+        if (pass == 2) {
+          if (showList != 0) printf("%7s                    %s\n",lineNo, srcLine);
+          if (listFile != 0) fprintf(lstFile,"%7s                    %s\n",lineNo, srcLine);
+          }
         }
 
       else if (strncasecmp(pline, "end", 3) == 0) {
@@ -775,6 +892,47 @@ printf("-->%s\n",srcLine);
           }
         }
 
+      else if (strncasecmp(pline, "df", 2) == 0) {
+        pline += 2;
+        sprintf(oline,"%7s %08x: ",lineNo, address);
+        count = 0;
+        while (*pline == ' ' || *pline == '\t') pline++;
+        while (pline != NULL && *pline != 0) {
+          id.f = atof(pline);
+          value = id.i;
+          while (*pline != 0 && *pline != ',') pline++;
+          if (pline != NULL) {
+            count++;
+            sprintf(tmp,"%08x",value);
+            strcat(oline, tmp);
+            if (count == 1) {
+              strcat(oline, " ");
+              strcat(oline, srcLine);
+              if (pass == 2) {
+                if (showList != 0) printf("%s\n",oline);
+                if (listFile != 0) fprintf(lstFile,"%s\n",oline);
+                }
+              }
+            else if (pass == 2) {
+              if (showList != 0) printf("%s\n",oline);
+              if (listFile != 0) fprintf(lstFile,"%s\n",oline);
+              }
+            strcpy(oline,"                  ");
+            output((value >> 24) & 0xff);
+            output((value >> 16) & 0xff);
+            output((value >> 8) & 0xff);
+            output(value & 0xff);
+            if (*pline != 0 && *pline != ',') {
+              printf("Error: Syntax error\n");
+              pline = NULL;
+              }
+            else if (*pline == ',') pline++;
+            }
+          if (pline != NULL)
+            while (*pline == ' ' || *pline == '\t') pline++;
+          }
+        }
+
       else {
         opcode = assemble(pline, &err);
         if (err == 0) {
@@ -790,9 +948,7 @@ printf("-->%s\n",srcLine);
           output(opcode & 0xff);
           }
         else {
-          printf("Error: Error in line\n");
-          printf(" --->  %s\n",srcLine);
-          errors++;
+          Error("Invalid opcode");
           }
         }
       }
@@ -827,6 +983,22 @@ void optionFile(char* filename) {
         listFile = 0xff;
         p += 2;
         }
+      else if (buffer[p] == '-' && buffer[p+1] == 's') {
+        showSymbols = 0xff;
+        p += 2;
+        }
+      else if (buffer[p] == '-' && buffer[p+1] == 'N' && buffer[p+2] == 'L') {
+        listFile = 0;
+        p += 3;
+        }
+      else if (buffer[p] == '-' && buffer[p+1] == 'n' && buffer[p+2] == 'l') {
+        showList = 0;
+        p += 3;
+        }
+      else if (buffer[p] == '-' && buffer[p+1] == 'n' && buffer[p+2] == 's') {
+        showSymbols = 0;
+        p += 3;
+        }
       else p++;
       }
     }
@@ -834,6 +1006,7 @@ void optionFile(char* filename) {
 
 void assembleFile(char* filename) {
   int p;
+  int i;
   char buildName[1024];
   FILE *buildFile;
   printf("Assembling %s...\n",filename);
@@ -904,9 +1077,17 @@ void assembleFile(char* filename) {
   fclose(outFile);
   if (listFile) fclose(lstFile);
   printf("\n");
+  if (showSymbols) {
+    printf("Symbols:\n");
+    for (i=0; i<numLabels; i++)
+      printf("  %20s %08x <%5d>\n",
+             labelNames[i], labelValues[i], labelDefLines[i]);
+    }
+  printf("\n");
   printf("Errors          : %d\n", errors);
   printf("Lines Assembled : %d\n", linesAssembled);
   printf("Code Generated  : %d\n", codeGenerated);
+  printf("\n");
   }
 
 int main(int argc, char** argv) {
@@ -928,6 +1109,7 @@ int main(int argc, char** argv) {
   buildSecond = buildTime.tm_sec;
   showList = 0;
   listFile = 0;
+  showSymbols = 0;
   if (homedir != NULL) {
     strcpy(tmp, homedir);
     strcat(tmp,"/.asms.rc");
@@ -938,6 +1120,10 @@ int main(int argc, char** argv) {
   while (i < argc) {
     if (strcmp(argv[i], "-l") == 0) showList = 0xff;
     else if (strcmp(argv[i], "-L") == 0) listFile = 0xff;
+    else if (strcmp(argv[i], "-nl") == 0) showList = 0;
+    else if (strcmp(argv[i], "-NL") == 0) listFile = 0;
+    else if (strcmp(argv[i], "-s") == 0) showSymbols = 0xff;
+    else if (strcmp(argv[i], "-ns") == 0) showSymbols = 0;
     else if (argv[i][0] == '-') {
       printf("Unknown switch encountered: %s\n",argv[i]);
       exit(1);
