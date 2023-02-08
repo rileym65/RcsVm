@@ -1116,7 +1116,7 @@ void _P94(CPU *cpu) {                  /* SUBCC reg,arg,reg */
   if ((v1 & 0x80000000) != 0) cpu->psr |= CC_N; else cpu->psr &= (~CC_N);
   if (((o1 & 0x80000000) != (v2 & 0x80000000)) &&
       ((o1 & 0x80000000) != (v1 & 0x80000000))) cpu->psr |= CC_V; else cpu->psr &= (~CC_V);
-  if (v1 < o1) cpu->psr |= CC_C; else cpu->psr &= (~CC_C);
+  if (v1 > o1) cpu->psr |= CC_C; else cpu->psr &= (~CC_C);
   }
 
 void _P95(CPU *cpu) {                  /* ANDNCC reg,arg,reg */
