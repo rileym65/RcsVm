@@ -21,13 +21,17 @@ Assembler directives
 
 Pseudo ops
 ----------
-          org addr   - Set assembly address
-          db  list   - Define bytes
-          dh  list   - Define half bytes (16-bits)
-          dw  list   - Define words (32-bits)
-          df  list   - Define floating point (32-bits)
-label:    equ expr   - Equate label to value
-          end addr   - Set start address
+          org addr    - Set assembly address
+          db  list    - Define bytes
+          dh  list    - Define half bytes (16-bits)
+          dw  list    - Define words (32-bits)
+          df  list    - Define floating point (32-bits)
+label:    equ expr    - Equate label to value
+          public name - Declare public symbol
+          extrn name  - Declare external symbol
+          proc name   - Start of proc procedure
+          endp        - End of proc procedure
+          end addr    - Set start address
 
 Preprocessor
 ------------

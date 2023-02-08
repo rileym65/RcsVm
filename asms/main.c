@@ -71,7 +71,8 @@ char* getDefine(char* name) {
 int findLabel(char* name) {
   int i;
   for (i=0; i<numLabels; i++)
-    if (strcmp(labelNames[i], name) == 0) return i;
+    if (strcmp(labelNames[i], name) == 0 &&
+        strcmp(labelModules[i], module) == 0) return i;
   return -1;
   }
 
@@ -85,23 +86,33 @@ void addLabel(char* name, word value) {
   numLabels++;
   if (numLabels == 1) {
     labelNames = (char**)malloc(sizeof(char*));
+    labelModules = (char**)malloc(sizeof(char*));
     labelValues = (word*)malloc(sizeof(word));
     labelDefLines = (word*)malloc(sizeof(word));
     }
   else {
     labelNames = (char**)realloc(labelNames, sizeof(char*) * numLabels);
+    labelModules = (char**)realloc(labelModules, sizeof(char*) * numLabels);
     labelDefLines = (word*)realloc(labelDefLines, sizeof(word) * numLabels);
     }
   labelNames[numLabels-1] = (char*)malloc(strlen(name) + 1);
   strcpy(labelNames[numLabels-1], name);
+  labelModules[numLabels-1] = (char*)malloc(strlen(module) + 1);
+  strcpy(labelModules[numLabels-1], module);
   labelValues[numLabels-1] = value;
   labelDefLines[numLabels-1] = fileLines[numFiles-1];
   }
 
 word getLabel(char* name) {
   int i;
+  int j;
+  isExternal = -1;
   i = findLabel(name);
-  if (i >= 0) return labelValues[i];
+  if (i >= 0) {
+    for (j=0; j<numExtrns; j++)
+      if (extrns[j] == i) isExternal = i;
+    return labelValues[i];
+    }
   if (pass == 2) {
     sprintf(err,"Label not found: %s",name);
     Error(err);
@@ -369,7 +380,7 @@ void output(byte b) {
     if (outCount == 16) {
       fprintf(outFile, "%s\n", outLine);
       outCount = 0;
-      sprintf(outLine,"%08x:", address);
+      sprintf(outLine,":%08x", address);
       }
     }
   }
@@ -387,6 +398,7 @@ int nextLine(char* buffer, int maxLen) {
   char  tmp[1024];
   int   i;
   word  value;
+  strcpy(buffer, "");
   flag = 0;
   while (flag == 0) {
     flag = -1;
@@ -591,6 +603,7 @@ int assemblyPass(FILE* src) {
   codeGenerated = 0;
   numDefines = 0;
   numCond = 0;
+  strcpy(module,"--");
   while (!feof(src)) {
     if (nextLine(line, 1023) == -1) {
       printf("Error: Unexpected file error\n");
@@ -629,7 +642,7 @@ int assemblyPass(FILE* src) {
           fprintf(outFile, "%s\n", outLine);
           }
         address = (address + 3) & 0xfffffffc;
-        sprintf(outLine,"%08x:", address);
+        sprintf(outLine,":%08x", address);
         outCount = 0;
         if (pass == 2) {
           if (showList != 0) printf("%7s                    %s\n",lineNo, srcLine);
@@ -642,7 +655,7 @@ int assemblyPass(FILE* src) {
           fprintf(outFile, "%s\n", outLine);
           }
         address = (address + 15) & 0xfffffff0;
-        sprintf(outLine,"%08x:", address);
+        sprintf(outLine,":%08x", address);
         outCount = 0;
         if (pass == 2) {
           if (showList != 0) printf("%7s                    %s\n",lineNo, srcLine);
@@ -655,7 +668,7 @@ int assemblyPass(FILE* src) {
           fprintf(outFile, "%s\n", outLine);
           }
         address = (address + 255) & 0xffffff00;
-        sprintf(outLine,"%08x:", address);
+        sprintf(outLine,":%08x", address);
         outCount = 0;
         if (pass == 2) {
           if (showList != 0) printf("%7s                    %s\n",lineNo, srcLine);
@@ -721,7 +734,7 @@ int assemblyPass(FILE* src) {
           if (outCount > 0) {
             fprintf(outFile, "%s\n", outLine);
             }
-          sprintf(outLine,"%08x:", address);
+          sprintf(outLine,":%08x", address);
           outCount = 0;
           }
         }
@@ -735,6 +748,78 @@ int assemblyPass(FILE* src) {
           if (showList != 0) printf("%7s                    %s\n",lineNo, srcLine);
           if (listFile != 0) fprintf(lstFile,"%7s                    %s\n",lineNo, srcLine);
           }
+        }
+
+      else if (strncasecmp(pline, "public", 6) == 0) {
+        if (pass == 2) {
+          pline += 6;
+          while (*pline == ' ' || *pline == '\t') pline++;
+          i = findLabel(pline);
+          if (pass == 2) {
+            if (showList != 0) printf("%7s                    %s\n",lineNo, srcLine);
+            if (listFile != 0) fprintf(lstFile,"%7s                    %s\n",lineNo, srcLine);
+            }
+          numPublics++;
+          if (numPublics == 1)
+            publics = (word*)malloc(sizeof(word));
+          else
+            publics = (word*)realloc(publics,sizeof(word) * numPublics);
+          publics[numPublics-1] = i;
+          }
+        }
+
+      else if (strncasecmp(pline, "extrn", 5) == 0) {
+        pline += 6;
+        while (*pline == ' ' || *pline == '\t') pline++;
+        addLabel(pline, 0x00000000);
+        i = findLabel(pline);
+        if (pass == 2) {
+          if (showList != 0) printf("%7s                    %s\n",lineNo, srcLine);
+          if (listFile != 0) fprintf(lstFile,"%7s                    %s\n",lineNo, srcLine);
+          }
+        if (pass == 1) {
+          numExtrns++;
+          if (numExtrns == 1)
+            extrns = (word*)malloc(sizeof(word));
+          else
+            extrns = (word*)realloc(extrns,sizeof(word) * numExtrns);
+          extrns[numExtrns-1] = i;
+          }
+        }
+
+      else if (strncasecmp(pline, "proc", 4) == 0) {
+        pline += 4;
+        while (*pline == ' ' || *pline == '\t') pline++;
+        pline = trim(pline);
+        strcpy(module, pline);
+        orgAddress = address;
+        address = 0;
+        if (pass == 2) {
+          if (showList != 0) printf("%7s                    %s\n",lineNo, srcLine);
+          if (listFile != 0) fprintf(lstFile,"%7s                    %s\n",lineNo, srcLine);
+          if (outCount > 0) {
+            fprintf(outFile, "%s\n", outLine);
+            }
+          sprintf(outLine,":%08x", address);
+          outCount = 0;
+          fprintf(outFile,"{%s\n",module);
+          }
+        }
+
+      else if (strncasecmp(pline, "endp", 4) == 0) {
+        pline += 4;
+        if (pass == 2) {
+          if (showList != 0) printf("%7s                    %s\n",lineNo, srcLine);
+          if (listFile != 0) fprintf(lstFile,"%7s                    %s\n",lineNo, srcLine);
+          if (outCount > 0) {
+            fprintf(outFile, "%s\n", outLine);
+            }
+          address = orgAddress;
+          sprintf(outLine,":%08x", address);
+          outCount = 0;
+          fprintf(outFile,"}\n");
+          }
+        strcpy(module,"--");
         }
 
       else if (strncasecmp(pline, "end", 3) == 0) {
@@ -946,6 +1031,9 @@ int assemblyPass(FILE* src) {
           output((opcode >> 16) & 0xff);
           output((opcode >> 8) & 0xff);
           output(opcode & 0xff);
+          if (isExternal >= 0 && pass == 2) {
+            fprintf(outFile,"<%d%s %x\n",addressType, labelNames[isExternal],address-4);
+            }
           }
         else {
           Error("Invalid opcode");
@@ -1044,6 +1132,8 @@ void assembleFile(char* filename) {
   numLabels = 0;
   errors = 0;
   pass = 1;
+  numPublics = 0;
+  numExtrns = 0;
   assemblyPass(srcFile);
   fclose(srcFile);
   if (errors > 0) {
@@ -1066,10 +1156,13 @@ void assembleFile(char* filename) {
     }
   pass = 2;
   outCount = 0;
-  sprintf(outLine,"%08x:", address);
+  sprintf(outLine,":%08x", address);
   assemblyPass(srcFile);
   if (outCount > 0) {
     fprintf(outFile, "%s\n", outLine);
+    }
+  for (i=0; i<numPublics; i++) {
+    fprintf(outFile,"=%s %x\n",labelNames[publics[i]], labelValues[publics[i]]);
     }
   if (startAddress != 0)
     fprintf(outFile,"@%x\n", startAddress);
@@ -1079,9 +1172,11 @@ void assembleFile(char* filename) {
   printf("\n");
   if (showSymbols) {
     printf("Symbols:\n");
-    for (i=0; i<numLabels; i++)
+    for (i=0; i<numLabels; i++) {
+      sprintf(buffer,"%s:%s",labelModules[i], labelNames[i]);
       printf("  %20s %08x <%5d>\n",
-             labelNames[i], labelValues[i], labelDefLines[i]);
+             buffer, labelValues[i], labelDefLines[i]);
+      }
     }
   printf("\n");
   printf("Errors          : %d\n", errors);

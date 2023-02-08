@@ -39,6 +39,7 @@ LINK FILE*  outFile;
 LINK FILE*  lstFile;
 LINK char   label[128];
 LINK char **labelNames;
+LINK char **labelModules;
 LINK word  *labelValues;
 LINK word  *labelDefLines;
 LINK int    numLabels;
@@ -65,6 +66,15 @@ LINK int    buildMinute;
 LINK int    buildSecond;
 LINK int    showSymbols;
 LINK char   err[256];
+LINK word  *publics;
+LINK int    numPublics;
+LINK word  *extrns;
+LINK int    numExtrns;
+LINK int    isExternal;
+LINK int    addressType;
+LINK char   module[256];
+LINK word   orgAddress;
+LINK char   buffer[256];
 
 
 extern word assemble(char* line, int* err);
