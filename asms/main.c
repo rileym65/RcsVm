@@ -724,6 +724,16 @@ int assemblyPass(FILE* src) {
           }
         }
 
+      else if (strncasecmp(pline, ".link ", 6) == 0) {
+        if (pass == 2) {
+          pline += 6;
+          while (*pline == ' ' || *pline == '\t') pline++;
+          fprintf(outFile,"%s\n",pline);
+          if (showList != 0) printf("%7s                    %s\n",lineNo, srcLine);
+          if (listFile != 0) fprintf(lstFile,"%7s                    %s\n",lineNo, srcLine);
+          }
+        }
+
       else if (strncasecmp(pline, "org", 3) == 0) {
         pline += 3;
         while (*pline == ' ' || *pline == '\t') pline++;
@@ -1018,6 +1028,22 @@ int assemblyPass(FILE* src) {
           }
         }
 
+      else if (strncasecmp(pline, "ds", 2) == 0) {
+        pline += 2;
+        while (*pline == ' ' || *pline == '\t') pline++;
+        getNumber(pline, &value);
+        if (pass == 2) {
+          if (showList != 0) printf("%7s                    %s\n",lineNo, srcLine);
+          if (listFile != 0) fprintf(lstFile,"%7s                    %s\n",lineNo, srcLine);
+          if (outCount > 0) {
+            fprintf(outFile, "%s\n", outLine);
+            }
+          address += value;
+          sprintf(outLine,":%08x", address);
+          outCount = 0;
+          }
+        }
+
       else {
         opcode = assemble(pline, &err);
         if (err == 0) {
@@ -1138,7 +1164,7 @@ void assembleFile(char* filename) {
   fclose(srcFile);
   if (errors > 0) {
     printf("Errors encountered, aborting file\n");
-    return;
+    exit(1);
     }
   srcFile = fopen(srcName,"r");
   if (srcFile == NULL) {
@@ -1183,6 +1209,9 @@ void assembleFile(char* filename) {
   printf("Lines Assembled : %d\n", linesAssembled);
   printf("Code Generated  : %d\n", codeGenerated);
   printf("\n");
+  if (errors > 0) {
+    exit(1);
+    }
   }
 
 int main(int argc, char** argv) {

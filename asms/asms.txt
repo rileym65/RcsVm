@@ -18,6 +18,7 @@ Assembler directives
 .nolistfile          - do not create list file
 .symbols             - Show symbols
 .nosymbols           - Do not show symbols
+.link text           - Pass text to linker
 
 Pseudo ops
 ----------
@@ -26,6 +27,7 @@ Pseudo ops
           dh  list    - Define half bytes (16-bits)
           dw  list    - Define words (32-bits)
           df  list    - Define floating point (32-bits)
+          ds  size    - Define storage
 label:    equ expr    - Equate label to value
           public name - Declare public symbol
           extrn name  - Declare external symbol
