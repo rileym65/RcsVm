@@ -1,3 +1,6 @@
 *.asm
 *.prg
 *.o
+*.build
+*.lst
+*.rc
