@@ -837,6 +837,10 @@ int assemblyPass(FILE* src) {
             if (fixupTypes[i] == 'H') fprintf(outFile,"^%d%x\n",fixupATypes[i],fixupAddresses[i]);
             if (fixupTypes[i] == 'L') fprintf(outFile,"v%d%x\n",fixupATypes[i],fixupAddresses[i]);
             }
+          for (i=0; i<numPublics; i++) {
+            if (strcmp(labelModules[publics[i]], module) == 0)
+              fprintf(outFile,"=%s %x\n",labelNames[publics[i]], labelValues[publics[i]]);
+            }
           fprintf(outFile,"}\n");
           }
         strcpy(module,"--");
@@ -1068,7 +1072,12 @@ int assemblyPass(FILE* src) {
           output((opcode >> 8) & 0xff);
           output(opcode & 0xff);
           if (isExternal >= 0 && pass == 2) {
-            fprintf(outFile,"<%d%s %x\n",addressType, labelNames[isExternal],address-4);
+            if (labelType == '-')
+              fprintf(outFile,"<%d%s %x\n",addressType, labelNames[isExternal],address-4);
+            if (labelType == 'H')
+              fprintf(outFile,"/%d%s %x\n",addressType, labelNames[isExternal],address-4);
+            if (labelType == 'L')
+              fprintf(outFile,"\\%d%s %x\n",addressType, labelNames[isExternal],address-4);
             }
           if (isLocal >= 0 && pass == 2 && strcmp(module,"--") != 0 && addressType != 0) {
             fixupLabels[numFixups] = isLocal;
@@ -1205,7 +1214,8 @@ void assembleFile(char* filename) {
     fprintf(outFile, "%s\n", outLine);
     }
   for (i=0; i<numPublics; i++) {
-    fprintf(outFile,"=%s %x\n",labelNames[publics[i]], labelValues[publics[i]]);
+    if (strcmp(labelModules[publics[i]],"--") == 0)
+      fprintf(outFile,"=%s %x\n",labelNames[publics[i]], labelValues[publics[i]]);
     }
   if (startAddress != 0)
     fprintf(outFile,"@%x\n", startAddress);

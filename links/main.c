@@ -318,6 +318,7 @@ int loadFile(char* filename) {
       }
     else if (*line == '/' && loadModule != 0) {
       line++;
+      atype = *line++;
       pos = 0;
       while (*line != 0 && *line > ' ') token[pos++] = *line++;
       token[pos] = 0;
@@ -326,17 +327,18 @@ int loadFile(char* filename) {
       if (inProc) value += offset;
       while (*line == ' ') line++;
       getHex(line, &low);
-      addReference(token, value, 'H', low & 0xff);
+      addReference(token, value, 'H', atype);
       }
     else if (*line == '\\' && loadModule != 0) {
       line++;
+      atype = *line++;
       pos = 0;
       while (*line != 0 && *line > ' ') token[pos++] = *line++;
       token[pos] = 0;
       while (*line == ' ') line++;
       getHex(line, &value);
       if (inProc) value += offset;
-      addReference(token, value, 'L', 0);
+      addReference(token, value, 'L', atype);
       }
     else if (*line == '{') {
       line++;
@@ -427,12 +429,34 @@ void doLink() {
         writeMem(address, v);
         }
       if (types[i] == 'H') {
-        v = ((memory[address] << 8) + values[s] + lows[i]) >> 8;
-        memory[address] = v & 0xff;
+        v = readMem(address);
+        switch (lows[i]) {
+          case '1':
+               v = (v & 0xffc00000) |
+               (((v & 0x00001fff) + (values[s] >> 10)) & 0x00001fff);
+               break;
+          case '2':
+               v = (v & 0xffc00000) |
+               (((v & 0x003fffff) + (values[s] >> 10)) & 0x003fffff);
+               break;
+          }
+        writeMem(address, v);
         }
       if (types[i] == 'L') {
-        v = memory[address] + values[s];
-        memory[address] = v & 0xff;
+//        v = memory[address] + values[s];
+//        memory[address] = v & 0xff;
+        v = readMem(address);
+        switch (lows[i]) {
+          case '1':
+               v = (v & 0xffffe000) |
+               (((v & 0x00001fff) + (values[s] & 0x1fff)) & 0x00001fff);
+               break;
+          case '2':
+               v = (v & 0xffc00000) |
+              (((v & 0x003fffff) + (values[s] & 0x1fff)) & 0x003fffff);
+               break;
+          }
+        writeMem(address, v);
         }
       free(references[i]);
       for (j=i; j<numReferences-1; j++) {
