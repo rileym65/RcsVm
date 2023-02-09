@@ -108,6 +108,7 @@ int loadFile(char* filename) {
   word  low;
   char  refType;
   char *line;
+  char  atype;
   if (libScan == 0) printf("Linking: %s\n",filename);
   inProc = 0;
   offset = 0;
@@ -231,18 +232,37 @@ int loadFile(char* filename) {
       }
     else if (*line == '^' && loadModule != 0) {
       line++;
+      atype = *line++;
       line = getHex(line, &addr);
-      value = (memory[addr+offset] << 8) + offset;
-      while (*line == ' ') line++;
-      getHex(line, &lofs);
-      value += lofs;
-      memory[addr+offset] = (value >> 8) & 0xff;
+      value = readMem(addr+offset);
+      switch (atype) {
+        case '1':
+             value = (value & 0xffc00000) |
+             (((value & 0x00001fff) + (offset >> 10)) & 0x00001fff);
+             break;
+        case '2':
+             value = (value & 0xffc00000) |
+             (((value & 0x003fffff) + (offset >> 10)) & 0x003fffff);
+             break;
+        }
+      writeMem(addr+offset, value);
       }
     else if (*line == 'v' && loadModule != 0) {
       line++;
+      atype = *line++;
       line = getHex(line, &addr);
-      value = memory[addr+offset] + offset;
-      memory[addr+offset] = value & 0xff;
+      value = readMem(addr+offset);
+      switch (atype) {
+        case '1':
+             value = (value & 0xffffe000) |
+             (((value & 0x00001fff) + (offset & 0x1fff)) & 0x00001fff);
+             break;
+        case '2':
+             value = (value & 0xffc00000) |
+            (((value & 0x003fffff) + (offset & 0x1fff)) & 0x003fffff);
+             break;
+        }
+      writeMem(addr+offset, value);
       }
     else if (*line == '=' && loadModule != 0) {
       line++;

@@ -111,6 +111,7 @@ word getLabel(char* name) {
   if (i >= 0) {
     for (j=0; j<numExtrns; j++)
       if (extrns[j] == i) isExternal = i;
+    isLocal = (isExternal >= 0) ? -1 : i;
     return labelValues[i];
     }
   if (pass == 2) {
@@ -139,6 +140,8 @@ char* getNumber(char* line, word* dest) {
   byte op;
   osp = 0;
   nsp = 0;
+  isLocal = -1;
+  labelType = '-';
   while (*line == ' ' || *line == '\t') line++;
   while (*line != 0 && *line != ',' && *line != ']') {
     flag = -1;
@@ -154,12 +157,14 @@ char* getNumber(char* line, word* dest) {
         ops[osp++] = OP_OP;
         line += 4;
         flag = -1;
+        labelType = 'H';
         }
       else if (strncasecmp(line,"%LO(",4) == 0) {
         ops[osp++] = OP_LO;
         ops[osp++] = OP_OP;
         line += 4;
         flag = -1;
+        labelType = 'L';
         }
       while (*line == ' ' || *line == '\t') line++;
       }
@@ -804,6 +809,7 @@ int assemblyPass(FILE* src) {
         strcpy(module, pline);
         orgAddress = address;
         address = 0;
+        numFixups = 0;
         if (pass == 2) {
           if (showList != 0) printf("%7s                    %s\n",lineNo, srcLine);
           if (listFile != 0) fprintf(lstFile,"%7s                    %s\n",lineNo, srcLine);
@@ -827,6 +833,10 @@ int assemblyPass(FILE* src) {
           address = orgAddress;
           sprintf(outLine,":%08x", address);
           outCount = 0;
+          for (i=0; i<numFixups; i++) {
+            if (fixupTypes[i] == 'H') fprintf(outFile,"^%d%x\n",fixupATypes[i],fixupAddresses[i]);
+            if (fixupTypes[i] == 'L') fprintf(outFile,"v%d%x\n",fixupATypes[i],fixupAddresses[i]);
+            }
           fprintf(outFile,"}\n");
           }
         strcpy(module,"--");
@@ -1059,6 +1069,13 @@ int assemblyPass(FILE* src) {
           output(opcode & 0xff);
           if (isExternal >= 0 && pass == 2) {
             fprintf(outFile,"<%d%s %x\n",addressType, labelNames[isExternal],address-4);
+            }
+          if (isLocal >= 0 && pass == 2 && strcmp(module,"--") != 0 && addressType != 0) {
+            fixupLabels[numFixups] = isLocal;
+            fixupAddresses[numFixups] = address - 4;
+            fixupTypes[numFixups] = labelType;
+            fixupATypes[numFixups] = addressType;
+            numFixups++;
             }
           }
         else {

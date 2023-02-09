@@ -71,10 +71,17 @@ LINK int    numPublics;
 LINK word  *extrns;
 LINK int    numExtrns;
 LINK int    isExternal;
+LINK int    isLocal;
 LINK int    addressType;
 LINK char   module[256];
 LINK word   orgAddress;
 LINK char   buffer[256];
+LINK int    fixupLabels[10000];
+LINK word   fixupAddresses[10000];
+LINK int    fixupATypes[10000];
+LINK char   fixupTypes[10000];
+LINK int    numFixups;
+LINK char   labelType;
 
 
 extern word assemble(char* line, int* err);
